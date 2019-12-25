@@ -3,6 +3,15 @@
 		<title>第一次使用github，请多多指教</title>
 	</head>
 	<body>
-		<p>这个是我的作品</p>
+		<p id="result">这个是我的作品</p>
+		<script>
+		window.onload = function(){
+			if(localStorage.getItem("a")!=="aaa"){
+				localStorage.setItem("a", "aaa");
+			}else{
+				alert("测试通过"+localStorage.getItem("a"));
+			}
+		}
+		</script>
 	</body>
 </html>
