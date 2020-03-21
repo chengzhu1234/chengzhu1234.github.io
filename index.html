@@ -1,17 +1,187 @@
+<!DOCTYPE html>
 <html>
-	<head>
-		<title>第一次使用github，请多多指教</title>
-	</head>
-	<body>
-		<p id="result">这个是我的作品</p>
-		<script>
-		window.onload = function(){
-			if(localStorage.getItem("a")!=="aaa"){
-				localStorage.setItem("a", "aaa");
-			}else{
-				alert("测试通过"+localStorage.getItem("a"));
+<head>
+	<title></title>
+	<meta charset="utf-8">
+	<style type="text/css">
+		body,div{margin: 0;padding: 0}
+		#main{width:800px;height:400px;margin: 50px auto}
+		#map{width: 800px;height: 400px;background: url(img/grass.jpg);position: relative;}
+		button{width: 100px;height: 40px}
+	</style>
+</head>
+<body>
+	<div id="main">
+		<button>开始游戏</button>
+		<div id="map"></div>
+	</div>
+	<script type="text/javascript">
+		function Snake(){
+			//属性
+			this.direction = 'right';
+			this.w = 20;
+			this.h = 20;
+			this.body = [
+				{x:2,y:0},
+				{x:1,y:0},
+				{x:0,y:0}
+			];			
+
+			//方法
+			this.display = function(){
+				//遍历，拿到每一个元素
+				for(var i=0;i<this.body.length;i++){
+					//创建img
+					var oimg = document.createElement('img');
+
+					this.body[i].flag = oimg;
+
+					oimg.src = 'img/snake.png';
+
+					//设置宽度、高度
+					oimg.style.width = this.w +'px';
+					oimg.style.height = this.h +'px';
+
+					//设置位置：
+					oimg.style.position = 'absolute';
+					oimg.style.left = this.body[i].x * this.w +'px';
+					oimg.style.top = this.body[i].y * this.h +'px';
+
+					//确定位置
+					document.getElementById('map').appendChild(oimg);
+				}
 			}
-		} 
-		</script>
-	</body>
+			//跑起来
+			this.run = function(){
+				//让蛇后面的元素位置等于前面的位置，在按照新的位置显示
+				for(var i=this.body.length-1;i>0;i--){
+					this.body[i].x = this.body[i-1].x;
+					this.body[i].y = this.body[i-1].y;
+				}
+				//单独处理蛇头
+				switch(this.direction){
+					case 'right':
+						this.body[0].x += 1;
+						break;
+					case 'left':
+						this.body[0].x -= 1;
+						break;
+					case 'up':
+						this.body[0].y -= 1;
+						break;
+					case 'down':
+						this.body[0].y += 1;
+						break;
+				}
+
+				//判断蛇是否出界
+				if(this.body[0].x <0 || this.body[0].x > 39 || this.body[0].y <0 || this.body[0].y > 19){
+					clearInterval(timer);
+					alert('游戏结束GAME OVER');
+					return false;
+				}
+
+				//判断蛇头是否吃到食物,保证X、Y轴的坐标重合
+				if(this.body[0].x == food.x && this.body[0].y == food.y){
+					//蛇涨一节，让蛇的身体增加一个元素，由于新增的这一节的位置取决于前面的位置
+					this.body.push({x:0,y:0,flag:null});
+					//食物消失，再重新生成
+					document.getElementById('map').removeChild(food.flag);
+					food.display();
+				}
+
+				//判断蛇是否吃到自己
+				for(var i=4;i<this.body.length;i++){
+					//拿蛇头位置和每一节身体进行比较
+					if(this.body[0].x == this.body[i].x && this.body[0].y == this.body[i].y){
+						clearInterval(timer);
+						alert('傻子，你怎么能吃自己呢');
+						return false;
+					}
+				}
+
+				//重新创建
+				//先删除旧的再创建新的
+				for(var i=0;i<this.body.length;i++){
+					if(this.body[i].flag != null){
+						document.getElementById('map').removeChild(this.body[i].flag);
+					}
+				}
+				this.display();
+			}
+		}
+		//设计食物
+		function Food()
+		{
+			this.w = 20;
+			this.h = 20;
+			this.display = function(){
+				var oimg = document.createElement('img');
+				//定义一个属性，增加flag属性该属性的值是：oimg节点对象
+				this.flag = oimg;
+				oimg.src = "img/food.png";
+
+				oimg.style.width = this.w +'px';
+				oimg.style.height = this.h +'px';
+
+				//确定位置
+				this.x = Math.floor(Math.random() * 40);
+				this.y = Math.floor(Math.random() * 20);
+
+				oimg.style.position = 'absolute';
+				oimg.style.left = this.x * this.w +'px';
+				oimg.style.top = this.y * this.h +'px';
+
+				document.getElementById('map').appendChild(oimg);
+			}
+		}
+		var snake = new Snake();
+		snake.display();
+
+		var food = new Food();
+		food.display();
+
+		var oBtn = document.getElementsByTagName('button');
+		var timer = null;
+
+		oBtn[0].onclick = function(){
+			clearInterval(timer);
+			timer = setInterval("snake.run()", 300);
+		}
+
+		//给body绑定键盘事件
+		document.body.onkeydown = function(e){
+			//如果没有接收到事件对象，我们就自己定义
+			var ev = e || window.event;
+			//alert(ev.keyCode);
+			switch(ev.keyCode){
+				case 87:
+					//将方向设置为向上
+					if(snake.direction != 'down'){
+						snake.direction = 'up';
+					}
+					break;
+				case 83:
+					//将方向设置为向下
+					if(snake.direction != 'up'){
+						snake.direction = 'down';
+					}
+					break;
+				case 65:
+					//将方向设置为向左
+					if(snake.direction != 'right'){
+						snake.direction = 'left';
+					}
+					break;
+				case 68:
+					//将方向设置为向右
+					if(snake.direction !='left'){
+						snake.direction = 'right';
+					}
+					break;
+			}			
+
+		}
+	</script>
+</body>
 </html>
